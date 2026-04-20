@@ -87,10 +87,12 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           noInitialRun: false,
 
           onRuntimeInitialized: () => {
-            console.log("🚀 运行时已就绪");
+            // console.log("🚀 运行时已就绪");
           },
           // 增加 print 监控，看 main 是否真的跑到了
-          print: (text: string) => console.log("C++:", text),
+          print: (text: string) => {
+            console.log(text);
+          },
         });
 
         setAppInstance(app);
