@@ -1,0 +1,119 @@
+import React, { createContext, useContext, useEffect, useState } from "react";
+
+declare global {
+  interface Window {
+    createCore?: (options: Record<string, unknown>) => Promise<any>;
+  }
+}
+
+let designCoreScriptPromise: Promise<void> | null = null;
+
+const ensureDesignCoreScript = () => {
+  if (window.createCore) {
+    return Promise.resolve();
+  }
+
+  if (designCoreScriptPromise) {
+    return designCoreScriptPromise;
+  }
+
+  designCoreScriptPromise = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[data-design-core="true"]',
+    );
+
+    if (existing) {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("DesignCore.js load failed")),
+        { once: true },
+      );
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "/wasm/DesignCore.js";
+    script.async = true;
+    script.dataset.designCore = "true";
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("DesignCore.js load failed"));
+    document.body.appendChild(script);
+  }).catch((error) => {
+    designCoreScriptPromise = null;
+    throw error;
+  });
+
+  return designCoreScriptPromise;
+};
+
+// 1. 定义 Context 类型
+const AppContext = createContext<any>(null);
+
+export const AppProvider = ({ children }: { children: React.ReactNode }) => {
+  const [appInstance, setAppInstance] = useState<any>(null);
+
+  useEffect(() => {
+    let disposed = false;
+
+    const initWasm = async () => {
+      try {
+        await ensureDesignCoreScript();
+        if (disposed) {
+          return;
+        }
+
+        if (!window.createCore) {
+          throw new Error("createCore is not available on window");
+        }
+
+        const canvas: HTMLCanvasElement = document.querySelector("#canvas")!;
+
+        if (!canvas) {
+          throw new Error("Canvas element not found");
+        }
+
+        canvas.width = window.innerWidth * window.devicePixelRatio;
+        canvas.height = window.innerHeight * window.devicePixelRatio;
+
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+
+        const app = await window.createCore({
+          canvas,
+          locateFile: (path: string) => `/wasm/${path}`,
+
+          // 确保主线程不会在 Worker 还没准备好时就去尝试同步状态
+          noInitialRun: false,
+
+          onRuntimeInitialized: () => {
+            console.log("🚀 运行时已就绪");
+          },
+          // 增加 print 监控，看 main 是否真的跑到了
+          print: (text: string) => console.log("C++:", text),
+        });
+
+        setAppInstance(app);
+
+        if (disposed) {
+          return;
+        }
+      } catch (error) {
+        console.error("WASM init failed:", error);
+      }
+    };
+
+    initWasm();
+
+    return () => {
+      disposed = true;
+    };
+  }, []);
+
+  return (
+    <AppContext.Provider value={appInstance}>{children}</AppContext.Provider>
+  );
+};
+
+// 2. 导出你想要的 useApp 钩子
+export const useApp = () => useContext(AppContext);
