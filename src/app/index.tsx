@@ -95,6 +95,14 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           },
         });
 
+        const w1 = app.getApp().window();
+        const w2 = app.getApp().window();
+
+        w1.dump();
+        w1.dump();
+
+        console.log(w1, w2, w1 === w2);
+
         setAppInstance(app);
 
         if (disposed) {
