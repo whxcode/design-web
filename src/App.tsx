@@ -1,17 +1,25 @@
-import { AppProvider } from "./app/index";
+import { AppProvider, useApp } from "./app/index";
+import { Workspace } from "./workspace";
+import { ImageTest } from "./Image";
 
 import "./App.scss";
+
+const Wrapper = ({ children }: { children: React.ReactNode }) => {
+  const { loaded } = useApp();
+  if (loaded) {
+    return <>{children}</>;
+  }
+  return <>加载中...</>;
+};
 
 function App() {
   return (
     <AppProvider>
-      <div className="w-screen h-screen overflow-hidden">
-        <canvas
-          id="canvas"
-          className="block w-full h-full outline-none"
-          onContextMenu={(e) => e.preventDefault()}
-        />
-      </div>
+      <Workspace />
+
+      <Wrapper>
+        <ImageTest />
+      </Wrapper>
     </AppProvider>
   );
 }

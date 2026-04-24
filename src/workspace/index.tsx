@@ -1,0 +1,11 @@
+export const Workspace = () => {
+  return (
+    <div className="w-screen h-screen overflow-hidden">
+      <canvas
+        id="canvas"
+        className="block w-full h-full outline-none"
+        onContextMenu={(e) => e.preventDefault()}
+      />
+    </div>
+  );
+};

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 declare global {
   interface Window {
@@ -47,10 +53,16 @@ const ensureDesignCoreScript = () => {
   return designCoreScriptPromise;
 };
 
+export interface IAppContext {
+  app: any;
+  core: any;
+  loaded: boolean;
+}
 // 1. 定义 Context 类型
-const AppContext = createContext<any>(null);
+const AppContext = createContext<any>({});
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
+  const [loaded, setLoaded] = useState<boolean>(false);
   const [appInstance, setAppInstance] = useState<any>(null);
 
   useEffect(() => {
@@ -95,14 +107,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           },
         });
 
-        const w1 = app.getApp().window();
-        const w2 = app.getApp().window();
-
-        w1.dump();
-        w1.dump();
-
-        console.log(w1, w2, w1 === w2);
-
         setAppInstance(app);
 
         if (disposed) {
@@ -113,16 +117,21 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    initWasm();
+    initWasm().then(() => {
+      setLoaded(true);
+    });
 
     return () => {
       disposed = true;
     };
   }, []);
 
-  return (
-    <AppContext.Provider value={appInstance}>{children}</AppContext.Provider>
+  const context = useMemo(
+    () => ({ app: appInstance, loaded, core: appInstance?.getApp() }),
+    [appInstance, loaded],
   );
+
+  return <AppContext.Provider value={context}>{children}</AppContext.Provider>;
 };
 
 // 2. 导出你想要的 useApp 钩子
