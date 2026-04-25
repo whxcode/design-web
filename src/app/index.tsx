@@ -6,9 +6,16 @@ import React, {
   useState,
 } from "react";
 
+import type {
+  CoreApp,
+  CoreModule,
+  CreateCoreFactory,
+  CreateCoreOptions,
+} from "../types/design-core/core-api";
+
 declare global {
   interface Window {
-    createCore?: (options: Record<string, unknown>) => Promise<any>;
+    createCore?: CreateCoreFactory;
   }
 }
 
@@ -54,16 +61,16 @@ const ensureDesignCoreScript = () => {
 };
 
 export interface IAppContext {
-  app: any;
-  core: any;
+  app: CoreModule;
+  core: CoreApp;
   loaded: boolean;
 }
 // 1. 定义 Context 类型
-const AppContext = createContext<any>({});
+const AppContext = createContext<IAppContext>({} as IAppContext);
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [appInstance, setAppInstance] = useState<any>(null);
+  const [appInstance, setAppInstance] = useState<CoreModule | null>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -91,7 +98,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         canvas.style.width = window.innerWidth + "px";
         canvas.style.height = window.innerHeight + "px";
 
-        const app = await window.createCore({
+        const createCoreOptions: CreateCoreOptions = {
           canvas,
           locateFile: (path: string) => `/wasm/${path}`,
 
@@ -105,7 +112,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           print: (text: string) => {
             console.log(text);
           },
-        });
+        };
+
+        const app = await window.createCore(createCoreOptions);
 
         setAppInstance(app);
 
@@ -126,8 +135,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const context = useMemo(
-    () => ({ app: appInstance, loaded, core: appInstance?.getApp() }),
+  const context = useMemo<IAppContext>(
+    () => ({ app: appInstance!, loaded, core: appInstance?.getApp()! }),
     [appInstance, loaded],
   );
 
