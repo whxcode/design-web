@@ -1,8 +1,9 @@
 import { AppProvider, useApp } from "./app/index";
+import { ViewportPanel } from "./app/viewport-panel";
 import { Workspace } from "./workspace";
 import { ImageTest } from "./Image";
 
-import "./App.scss";
+import "./App.css";
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   const { loaded } = useApp();
@@ -20,6 +21,8 @@ function App() {
       <Wrapper>
         <ImageTest />
       </Wrapper>
+
+      <ViewportPanel />
     </AppProvider>
   );
 }

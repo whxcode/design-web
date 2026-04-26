@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 
+import { useWindowUIEvents } from "./use-window-ui-events";
 import type {
   CoreApp,
   CoreModule,
@@ -71,6 +72,9 @@ const AppContext = createContext<IAppContext>({} as IAppContext);
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [appInstance, setAppInstance] = useState<CoreModule | null>(null);
+  const core = useMemo(() => appInstance?.getApp() ?? null, [appInstance]);
+
+  useWindowUIEvents(core);
 
   useEffect(() => {
     let disposed = false;
@@ -136,8 +140,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const context = useMemo<IAppContext>(
-    () => ({ app: appInstance!, loaded, core: appInstance?.getApp()! }),
-    [appInstance, loaded],
+    () => ({ app: appInstance!, loaded, core: core! }),
+    [appInstance, core, loaded],
   );
 
   return <AppContext.Provider value={context}>{children}</AppContext.Provider>;

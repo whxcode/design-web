@@ -1,3 +1,8 @@
+import type { ZUIEvent } from "./ui-event/z-ui-event";
+
+export { KeyCode, MouseButton, ZUIEventType } from "./ui-event/z-ui-event";
+export type { ZUIEvent } from "./ui-event/z-ui-event";
+
 export type WasmPtr = number;
 export type SizeT = number;
 
@@ -10,9 +15,17 @@ export interface CoreDocument {
   setName(): void;
 }
 
+export interface ViewportData {
+  offsetX: number;
+  offsetY: number;
+  scale: number;
+}
+
 export interface CoreApp {
   putImage(size: SizeT, width: SizeT, height: SizeT): WasmPtr;
   draw(): void;
+  viewport(): ViewportData;
+  onUIEvent(event: ZUIEvent): void;
   window(): CoreWindow;
   document(): CoreDocument;
 }
