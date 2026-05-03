@@ -1,4 +1,5 @@
 import { AppProvider, useApp } from "./app/index";
+import { ToolbarPanel } from "./app/toolbar-panel";
 import { ViewportPanel } from "./app/viewport-panel";
 import { Workspace } from "./workspace";
 import { ImageTest } from "./Image";
@@ -23,6 +24,7 @@ function App() {
       </Wrapper>
 
       <ViewportPanel />
+      <ToolbarPanel />
     </AppProvider>
   );
 }

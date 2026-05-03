@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MoveHorizontal, MoveVertical, Scaling } from "lucide-react";
 
 import { useApp } from ".";
 import type { ViewportData } from "../types/design-core/core-api";
@@ -33,21 +34,27 @@ export const ViewportPanel = () => {
   return (
     <aside className="viewport-panel" aria-label="Viewport status">
       <span className="viewport-panel__group">
-        <span className="viewport-panel__label">X</span>
+        <span className="viewport-panel__icon" aria-hidden="true">
+          <MoveHorizontal size={14} strokeWidth={2} />
+        </span>
         <span className="viewport-panel__value">
           {viewport.offsetX.toFixed(0)}
         </span>
       </span>
       <span className="viewport-panel__divider" />
       <span className="viewport-panel__group">
-        <span className="viewport-panel__label">Y</span>
+        <span className="viewport-panel__icon" aria-hidden="true">
+          <MoveVertical size={14} strokeWidth={2} />
+        </span>
         <span className="viewport-panel__value">
           {viewport.offsetY.toFixed(0)}
         </span>
       </span>
       <span className="viewport-panel__divider" />
       <span className="viewport-panel__group">
-        <span className="viewport-panel__label">Zoom</span>
+        <span className="viewport-panel__icon" aria-hidden="true">
+          <Scaling size={14} strokeWidth={2} />
+        </span>
         <span className="viewport-panel__value">
           {(viewport.scale * 100).toFixed(0)}%
         </span>
