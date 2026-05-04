@@ -1,4 +1,5 @@
 import { AppProvider, useApp } from "./app/index";
+import { TitlePanel } from "./app/title-panel";
 import { ToolbarPanel } from "./app/toolbar-panel";
 import { ViewportPanel } from "./app/viewport-panel";
 import { Workspace } from "./workspace";
@@ -24,6 +25,7 @@ function App() {
       </Wrapper>
 
       <ViewportPanel />
+      <TitlePanel />
       <ToolbarPanel />
     </AppProvider>
   );

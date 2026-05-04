@@ -21,6 +21,14 @@ export interface CoreDocument {
   setName(): void;
 }
 
+export interface CoreCommit {
+  commit(): void;
+  undo(): void;
+  redo(): void;
+  canUndo(): boolean;
+  canRedo(): boolean;
+}
+
 export interface ViewportData {
   offsetX: number;
   offsetY: number;
@@ -44,15 +52,12 @@ export interface CoreApp {
   putImage(size: SizeT, width: SizeT, height: SizeT): WasmPtr;
   draw(): void;
   randProps(): void;
-  undo(): void;
-  redo(): void;
-  canUndo(): boolean;
-  canRedo(): boolean;
   viewport(): ViewportData;
   handler(): ZHandlerType;
   onUIEvent(event: ZUIEvent): void;
   switchHandler(type: ZHandlerType): void;
   appEvent(): CoreAppEvent;
+  commit(): CoreCommit;
   window(): CoreWindow;
   document(): CoreDocument;
 }

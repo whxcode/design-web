@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ActionIcon, Tooltip } from "@mantine/core";
 import { Dices, MousePointer2, Redo2, Square, Undo2 } from "lucide-react";
 
 import { useApp } from ".";
@@ -35,8 +36,9 @@ export const ToolbarPanel = () => {
     }
 
     const updateHistoryState = () => {
-      setCanUndo(core.canUndo());
-      setCanRedo(core.canRedo());
+      const commit = core.commit();
+      setCanUndo(commit.canUndo());
+      setCanRedo(commit.canRedo());
     };
 
     updateHistoryState();
@@ -47,6 +49,40 @@ export const ToolbarPanel = () => {
       appEvent.off(ZAppEventType.HistoryChanged, id);
     };
   }, [core, loaded]);
+
+  useEffect(() => {
+    if (!core) {
+      return;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      const isUndo = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z";
+      const isRedo = isUndo && event.shiftKey;
+
+      if (!isUndo) {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (isRedo) {
+        if (core.commit().canRedo()) {
+          core.commit().redo();
+        }
+        return;
+      }
+
+      if (core.commit().canUndo()) {
+        core.commit().undo();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [core]);
 
   const switchHandler = (type: ZHandlerType) => {
     if (!core) {
@@ -69,7 +105,7 @@ export const ToolbarPanel = () => {
       return;
     }
 
-    core.undo();
+    core.commit().undo();
   };
 
   const redo = () => {
@@ -77,67 +113,77 @@ export const ToolbarPanel = () => {
       return;
     }
 
-    core.redo();
+    core.commit().redo();
   };
 
   return (
     <div className="toolbar-panel" aria-label="Editor tools">
-      <button
-        type="button"
-        className={
-          handler === ZHandlerType.Common
-            ? "toolbar-panel__button is-active"
-            : "toolbar-panel__button"
-        }
-        aria-label="Select tool"
-        title="Select tool"
-        onClick={() => switchHandler(ZHandlerType.Common)}
-      >
-        <MousePointer2 size={16} strokeWidth={2} />
-      </button>
-      <button
-        type="button"
-        className={
-          handler === ZHandlerType.DrawLayer
-            ? "toolbar-panel__button is-active"
-            : "toolbar-panel__button"
-        }
-        aria-label="Rectangle tool"
-        title="Rectangle tool"
-        onClick={() => switchHandler(ZHandlerType.DrawLayer)}
-      >
-        <Square size={16} strokeWidth={2} />
-      </button>
-      <button
-        type="button"
-        className="toolbar-panel__button"
-        aria-label="Random transform"
-        title="Random transform"
-        onClick={randProps}
-      >
-        <Dices size={16} strokeWidth={2} />
-      </button>
+      <Tooltip label="选择" position="top" withArrow>
+        <ActionIcon
+          aria-label="选择"
+          className={
+            handler === ZHandlerType.Common
+              ? "floating-icon-button is-active"
+              : "floating-icon-button"
+          }
+          size={30}
+          variant="transparent"
+          onClick={() => switchHandler(ZHandlerType.Common)}
+        >
+          <MousePointer2 size={16} strokeWidth={2} />
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="矩形" position="top" withArrow>
+        <ActionIcon
+          aria-label="矩形"
+          className={
+            handler === ZHandlerType.DrawLayer
+              ? "floating-icon-button is-active"
+              : "floating-icon-button"
+          }
+          size={30}
+          variant="transparent"
+          onClick={() => switchHandler(ZHandlerType.DrawLayer)}
+        >
+          <Square size={16} strokeWidth={2} />
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="随机变换" position="top" withArrow>
+        <ActionIcon
+          aria-label="随机变换"
+          className="floating-icon-button"
+          size={30}
+          variant="transparent"
+          onClick={randProps}
+        >
+          <Dices size={16} strokeWidth={2} />
+        </ActionIcon>
+      </Tooltip>
       <span className="toolbar-panel__divider" aria-hidden="true" />
-      <button
-        type="button"
-        className="toolbar-panel__button"
-        aria-label="Undo"
-        title="Undo"
-        disabled={!canUndo}
-        onClick={undo}
-      >
-        <Undo2 size={16} strokeWidth={2} />
-      </button>
-      <button
-        type="button"
-        className="toolbar-panel__button"
-        aria-label="Redo"
-        title="Redo"
-        disabled={!canRedo}
-        onClick={redo}
-      >
-        <Redo2 size={16} strokeWidth={2} />
-      </button>
+      <Tooltip label="撤销 (Ctrl+Z)" position="top" withArrow>
+        <ActionIcon
+          aria-label="撤销"
+          className="floating-icon-button"
+          disabled={!canUndo}
+          size={30}
+          variant="transparent"
+          onClick={undo}
+        >
+          <Undo2 size={16} strokeWidth={2} />
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="重做 (Ctrl+Shift+Z)" position="top" withArrow>
+        <ActionIcon
+          aria-label="重做"
+          className="floating-icon-button"
+          disabled={!canRedo}
+          size={30}
+          variant="transparent"
+          onClick={redo}
+        >
+          <Redo2 size={16} strokeWidth={2} />
+        </ActionIcon>
+      </Tooltip>
     </div>
   );
 };
