@@ -4,7 +4,11 @@ import {
   type MantineColorScheme,
   useMantineColorScheme,
 } from "@mantine/core";
+import { useCallback, useEffect } from "react";
 import type { ReactNode } from "react";
+
+import { useApp } from "./index";
+import { ZEditorThemeType } from "../types/design-core/core-api";
 
 const themeOptions: Array<{
   icon: ReactNode;
@@ -30,6 +34,50 @@ const themeOptions: Array<{
 
 export const TitlePanel = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const { core, loaded } = useApp();
+
+  const resolveCoreTheme = useCallback((scheme: MantineColorScheme) => {
+    if (scheme === "dark") {
+      return ZEditorThemeType.Dark;
+    }
+
+    if (scheme === "light") {
+      return ZEditorThemeType.Light;
+    }
+
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? ZEditorThemeType.Dark
+      : ZEditorThemeType.Light;
+  }, []);
+
+  const handleThemeChange = (scheme: MantineColorScheme) => {
+    setColorScheme(scheme);
+    if (loaded && core) {
+      core.setTheme(resolveCoreTheme(scheme));
+    }
+  };
+
+  useEffect(() => {
+    if (!loaded || !core) {
+      return;
+    }
+
+    core.setTheme(resolveCoreTheme(colorScheme));
+
+    if (colorScheme !== "auto") {
+      return;
+    }
+
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleSystemThemeChange = () => {
+      core.setTheme(resolveCoreTheme("auto"));
+    };
+
+    media.addEventListener("change", handleSystemThemeChange);
+    return () => {
+      media.removeEventListener("change", handleSystemThemeChange);
+    };
+  }, [colorScheme, core, loaded, resolveCoreTheme]);
 
   return (
     <header className="title-panel" aria-label="Document menu">
@@ -54,7 +102,7 @@ export const TitlePanel = () => {
                   <Check size={13} strokeWidth={2} />
                 ) : null
               }
-              onClick={() => setColorScheme(option.value)}
+              onClick={() => handleThemeChange(option.value)}
             >
               {option.label}
             </Menu.Item>
