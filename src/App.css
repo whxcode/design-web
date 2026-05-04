@@ -102,8 +102,26 @@
   color: rgb(24 24 27);
 }
 
+.toolbar-panel__button:disabled {
+  color: rgb(161 161 170);
+  cursor: default;
+  opacity: 0.42;
+}
+
+.toolbar-panel__button:disabled:hover {
+  background: transparent;
+  color: rgb(161 161 170);
+}
+
 .toolbar-panel__button.is-active {
   background: rgb(24 24 27);
   color: rgb(255 255 255);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.14);
+}
+
+.toolbar-panel__divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 2px;
+  background: rgb(0 0 0 / 0.1);
 }

@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { MoveHorizontal, MoveVertical, Scaling } from "lucide-react";
 
 import { useApp } from ".";
-import type { ViewportData } from "../types/design-core/core-api";
+import {
+  ZAppEventType,
+  type ViewportData,
+} from "../types/design-core/core-api";
 
 const emptyViewport: ViewportData = {
   offsetX: 0,
@@ -19,15 +22,14 @@ export const ViewportPanel = () => {
       return;
     }
 
-    const update = () => {
+    setViewport(core.viewport());
+    const appEvent = core.appEvent();
+    const id = appEvent.on(ZAppEventType.ViewportChanged, () => {
       setViewport(core.viewport());
-    };
-
-    update();
-    const timer = window.setInterval(update, 120);
+    });
 
     return () => {
-      window.clearInterval(timer);
+      appEvent.off(ZAppEventType.ViewportChanged, id);
     };
   }, [core, loaded]);
 

@@ -27,13 +27,32 @@ export interface ViewportData {
   scale: number;
 }
 
+export enum ZAppEventType {
+  None = 0,
+  DocChanged = 1,
+  ViewportChanged = 2,
+  HistoryChanged = 3,
+  HandlerChanged = 4,
+}
+
+export interface CoreAppEvent {
+  on(type: ZAppEventType, callback: (type: ZAppEventType) => void): number;
+  off(type: ZAppEventType, id: number): void;
+}
+
 export interface CoreApp {
   putImage(size: SizeT, width: SizeT, height: SizeT): WasmPtr;
   draw(): void;
+  randProps(): void;
+  undo(): void;
+  redo(): void;
+  canUndo(): boolean;
+  canRedo(): boolean;
   viewport(): ViewportData;
   handler(): ZHandlerType;
   onUIEvent(event: ZUIEvent): void;
   switchHandler(type: ZHandlerType): void;
+  appEvent(): CoreAppEvent;
   window(): CoreWindow;
   document(): CoreDocument;
 }
