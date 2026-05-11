@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { ActionIcon, Tooltip } from "@mantine/core";
-import { Dices, MousePointer2, Redo2, Square, Undo2 } from "lucide-react";
+import { MousePointer2, Redo2, Square, Undo2 } from "lucide-react";
 
 import { useApp } from ".";
-import {
-  ZAppEventType,
-  ZHandlerType,
-} from "../types/design-core/core-api";
+import { ZAppEventType, ZHandlerType } from "../types/design-core/core-api";
 
 export const ToolbarPanel = () => {
   const { core, loaded } = useApp();
@@ -56,7 +53,8 @@ export const ToolbarPanel = () => {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      const isUndo = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z";
+      const isUndo =
+        (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z";
       const isRedo = isUndo && event.shiftKey;
 
       if (!isUndo) {
@@ -90,14 +88,6 @@ export const ToolbarPanel = () => {
     }
 
     core.switchHandler(type);
-  };
-
-  const randProps = () => {
-    if (!core) {
-      return;
-    }
-
-    core.randProps();
   };
 
   const undo = () => {
@@ -146,17 +136,6 @@ export const ToolbarPanel = () => {
           onClick={() => switchHandler(ZHandlerType.DrawLayer)}
         >
           <Square size={16} strokeWidth={2} />
-        </ActionIcon>
-      </Tooltip>
-      <Tooltip label="随机变换" position="top" withArrow>
-        <ActionIcon
-          aria-label="随机变换"
-          className="floating-icon-button"
-          size={30}
-          variant="transparent"
-          onClick={randProps}
-        >
-          <Dices size={16} strokeWidth={2} />
         </ActionIcon>
       </Tooltip>
       <span className="toolbar-panel__divider" aria-hidden="true" />
