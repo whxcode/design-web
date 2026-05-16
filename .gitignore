@@ -22,5 +22,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-./public/wasm/DesignCore.js
-
+./public/wasm
