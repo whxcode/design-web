@@ -5,7 +5,9 @@ import {
   MouseButton,
   ZUIEventType,
 } from "../types/design-core/core-api";
-import type { CoreApp, ZUIEvent } from "../types/design-core/core-api";
+import { matchShortcut } from "../core/shortcuts";
+import type { DesignApp } from "../core/app";
+import type { ZUIEvent } from "../types/design-core/core-api";
 
 const getCanvasPoint = (event: MouseEvent, canvas: HTMLCanvasElement) => {
   const rect = canvas.getBoundingClientRect();
@@ -94,9 +96,9 @@ const mouseButtonMap: Record<number, MouseButton> = {
 const getMouseButton = (event: MouseEvent) =>
   mouseButtonMap[event.button] ?? MouseButton.Unknown;
 
-export const useWindowUIEvents = (core: CoreApp | null) => {
+export const useWindowUIEvents = (app: DesignApp | null) => {
   useEffect(() => {
-    if (!core) {
+    if (!app) {
       return;
     }
 
@@ -104,6 +106,8 @@ export const useWindowUIEvents = (core: CoreApp | null) => {
     if (!canvas) {
       return;
     }
+
+    const { core, command } = app;
     const wheelOptions: AddEventListenerOptions = { passive: false };
 
     const emitMouseEvent = (type: ZUIEventType, event: MouseEvent) => {
@@ -167,10 +171,26 @@ export const useWindowUIEvents = (core: CoreApp | null) => {
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      const shortcut = matchShortcut(event);
+      if (shortcut) {
+        command.execute(shortcut.command);
+
+        if (shortcut.preventCpp) {
+          event.preventDefault();
+          return;
+        }
+      }
+
       emitKeyEvent(ZUIEventType.KeyDown, event);
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
+      const shortcut = matchShortcut(event);
+      if (shortcut?.preventCpp) {
+        event.preventDefault();
+        return;
+      }
+
       emitKeyEvent(ZUIEventType.KeyUp, event);
     };
 
@@ -189,5 +209,5 @@ export const useWindowUIEvents = (core: CoreApp | null) => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [core]);
+  }, [app]);
 };

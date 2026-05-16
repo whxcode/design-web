@@ -2,21 +2,17 @@ import { useEffect, useState } from "react";
 import { ActionIcon, Tooltip } from "@mantine/core";
 import { MousePointer2, Redo2, Square, Undo2 } from "lucide-react";
 
-import { useApp } from ".";
+import { useApp } from "./app-context";
 import { ZAppEventType, ZHandlerType } from "../types/design-core/core-api";
 
 export const ToolbarPanel = () => {
-  const { core, loaded } = useApp();
-  const [handler, setHandler] = useState<ZHandlerType>(ZHandlerType.Common);
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
+  const app = useApp();
+  const { command, core } = app;
+  const [handler, setHandler] = useState<ZHandlerType>(() => core.handler());
+  const [canUndo, setCanUndo] = useState(() => command.canUndo());
+  const [canRedo, setCanRedo] = useState(() => command.canRedo());
 
   useEffect(() => {
-    if (!loaded || !core) {
-      return;
-    }
-
-    setHandler(core.handler());
     const appEvent = core.appEvent();
     const id = appEvent.on(ZAppEventType.HandlerChanged, () => {
       setHandler(core.handler());
@@ -25,85 +21,36 @@ export const ToolbarPanel = () => {
     return () => {
       appEvent.off(ZAppEventType.HandlerChanged, id);
     };
-  }, [core, loaded]);
+  }, [core]);
 
   useEffect(() => {
-    if (!loaded || !core) {
-      return;
-    }
-
     const updateHistoryState = () => {
-      const commit = core.commit();
-      setCanUndo(commit.canUndo());
-      setCanRedo(commit.canRedo());
+      setCanUndo(command.canUndo());
+      setCanRedo(command.canRedo());
     };
 
-    updateHistoryState();
     const appEvent = core.appEvent();
     const id = appEvent.on(ZAppEventType.HistoryChanged, updateHistoryState);
 
     return () => {
       appEvent.off(ZAppEventType.HistoryChanged, id);
     };
-  }, [core, loaded]);
-
-  useEffect(() => {
-    if (!core) {
-      return;
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      const isUndo =
-        (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z";
-      const isRedo = isUndo && event.shiftKey;
-
-      if (!isUndo) {
-        return;
-      }
-
-      event.preventDefault();
-
-      if (isRedo) {
-        if (core.commit().canRedo()) {
-          core.commit().redo();
-        }
-        return;
-      }
-
-      if (core.commit().canUndo()) {
-        core.commit().undo();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [core]);
-
-  const switchHandler = (type: ZHandlerType) => {
-    if (!core) {
-      return;
-    }
-
-    core.switchHandler(type);
-  };
+  }, [command, core]);
 
   const undo = () => {
-    if (!core || !canUndo) {
+    if (!canUndo) {
       return;
     }
 
-    core.commit().undo();
+    command.undo();
   };
 
   const redo = () => {
-    if (!core || !canRedo) {
+    if (!canRedo) {
       return;
     }
 
-    core.commit().redo();
+    command.redo();
   };
 
   return (
@@ -118,7 +65,7 @@ export const ToolbarPanel = () => {
           }
           size={30}
           variant="transparent"
-          onClick={() => switchHandler(ZHandlerType.Common)}
+          onClick={() => command.switchToCommonHandler()}
         >
           <MousePointer2 size={16} strokeWidth={2} />
         </ActionIcon>
@@ -133,7 +80,7 @@ export const ToolbarPanel = () => {
           }
           size={30}
           variant="transparent"
-          onClick={() => switchHandler(ZHandlerType.DrawLayer)}
+          onClick={() => command.drawRectangle()}
         >
           <Square size={16} strokeWidth={2} />
         </ActionIcon>

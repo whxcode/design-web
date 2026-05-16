@@ -1,28 +1,18 @@
 import { useEffect, useState } from "react";
 import { MoveHorizontal, MoveVertical, Scaling } from "lucide-react";
 
-import { useApp } from ".";
+import { useApp } from "./app-context";
 import {
   ZAppEventType,
   type ViewportData,
 } from "../types/design-core/core-api";
 
-const emptyViewport: ViewportData = {
-  offsetX: 0,
-  offsetY: 0,
-  scale: 1,
-};
-
 export const ViewportPanel = () => {
-  const { core, loaded } = useApp();
-  const [viewport, setViewport] = useState<ViewportData>(emptyViewport);
+  const app = useApp();
+  const { core } = app;
+  const [viewport, setViewport] = useState<ViewportData>(() => core.viewport());
 
   useEffect(() => {
-    if (!loaded || !core) {
-      return;
-    }
-
-    setViewport(core.viewport());
     const appEvent = core.appEvent();
     const id = appEvent.on(ZAppEventType.ViewportChanged, () => {
       setViewport(core.viewport());
@@ -31,7 +21,7 @@ export const ViewportPanel = () => {
     return () => {
       appEvent.off(ZAppEventType.ViewportChanged, id);
     };
-  }, [core, loaded]);
+  }, [core]);
 
   return (
     <aside className="viewport-panel" aria-label="Viewport status">

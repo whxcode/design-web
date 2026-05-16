@@ -1,32 +1,32 @@
-import { AppProvider, useApp } from "./app/index";
+import { AppProvider } from "./app/app-provider";
+import { useAppStatus } from "./app/app-context";
 import { TitlePanel } from "./app/title-panel";
 import { ToolbarPanel } from "./app/toolbar-panel";
 import { ViewportPanel } from "./app/viewport-panel";
 import { Workspace } from "./workspace";
-import { ImageTest } from "./Image";
 
 import "./App.css";
 
-const Wrapper = ({ children }: { children: React.ReactNode }) => {
-  const { loaded } = useApp();
-  if (loaded) {
-    return <>{children}</>;
+const AppPanels = () => {
+  const { loaded } = useAppStatus();
+  if (!loaded) {
+    return null;
   }
-  return <>加载中...</>;
+
+  return (
+    <>
+      <ViewportPanel />
+      <TitlePanel />
+      <ToolbarPanel />
+    </>
+  );
 };
 
 function App() {
   return (
     <AppProvider>
       <Workspace />
-
-      <Wrapper>
-        <ImageTest />
-      </Wrapper>
-
-      <ViewportPanel />
-      <TitlePanel />
-      <ToolbarPanel />
+      <AppPanels />
     </AppProvider>
   );
 }

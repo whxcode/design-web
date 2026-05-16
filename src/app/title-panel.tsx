@@ -7,7 +7,7 @@ import {
 import { useCallback, useEffect } from "react";
 import type { ReactNode } from "react";
 
-import { useApp } from "./index";
+import { useApp } from "./app-context";
 import { ZEditorThemeType } from "../types/design-core/core-api";
 
 const themeOptions: Array<{
@@ -34,7 +34,8 @@ const themeOptions: Array<{
 
 export const TitlePanel = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const { core, loaded } = useApp();
+  const app = useApp();
+  const { core } = app;
 
   const resolveCoreTheme = useCallback((scheme: MantineColorScheme) => {
     if (scheme === "dark") {
@@ -52,16 +53,10 @@ export const TitlePanel = () => {
 
   const handleThemeChange = (scheme: MantineColorScheme) => {
     setColorScheme(scheme);
-    if (loaded && core) {
-      core.setTheme(resolveCoreTheme(scheme));
-    }
+    core.setTheme(resolveCoreTheme(scheme));
   };
 
   useEffect(() => {
-    if (!loaded || !core) {
-      return;
-    }
-
     core.setTheme(resolveCoreTheme(colorScheme));
 
     if (colorScheme !== "auto") {
@@ -77,7 +72,7 @@ export const TitlePanel = () => {
     return () => {
       media.removeEventListener("change", handleSystemThemeChange);
     };
-  }, [colorScheme, core, loaded, resolveCoreTheme]);
+  }, [colorScheme, core, resolveCoreTheme]);
 
   return (
     <header className="title-panel" aria-label="Document menu">
