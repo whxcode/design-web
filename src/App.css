@@ -11,6 +11,17 @@
   --panel-hover: rgb(24 24 27 / 0.06);
   --panel-active-bg: rgb(24 24 27);
   --panel-active-text: rgb(255 255 255);
+  --shortcut-help-bg: rgb(255 255 255 / 0.96);
+  --shortcut-help-border: rgb(0 0 0 / 0.1);
+  --shortcut-help-shadow: 0 -16px 42px rgb(15 23 42 / 0.12);
+  --shortcut-help-text: rgb(39 39 42);
+  --shortcut-help-muted: rgb(113 113 122);
+  --shortcut-help-divider: rgb(0 0 0 / 0.08);
+  --shortcut-help-hover: rgb(24 24 27 / 0.06);
+  --shortcut-help-active: rgb(24 144 255);
+  --shortcut-help-key-bg: rgb(244 244 245);
+  --shortcut-help-key-border: rgb(0 0 0 / 0.18);
+  --shortcut-help-key-text: rgb(39 39 42);
 }
 
 [data-mantine-color-scheme="dark"] {
@@ -23,6 +34,17 @@
   --panel-hover: rgb(255 255 255 / 0.09);
   --panel-active-bg: rgb(244 244 245);
   --panel-active-text: rgb(24 24 27);
+  --shortcut-help-bg: rgb(28 28 29 / 0.98);
+  --shortcut-help-border: rgb(255 255 255 / 0.1);
+  --shortcut-help-shadow: 0 -16px 42px rgb(0 0 0 / 0.28);
+  --shortcut-help-text: rgb(244 244 245);
+  --shortcut-help-muted: rgb(161 161 170);
+  --shortcut-help-divider: rgb(255 255 255 / 0.08);
+  --shortcut-help-hover: rgb(255 255 255 / 0.08);
+  --shortcut-help-active: rgb(24 144 255);
+  --shortcut-help-key-bg: rgb(39 39 42);
+  --shortcut-help-key-border: rgb(113 113 122);
+  --shortcut-help-key-text: rgb(244 244 245);
 }
 
 * {
@@ -244,14 +266,14 @@
   min-height: 238px;
   max-height: min(360px, 56vh);
   overflow: hidden;
-  border-top: 1px solid rgb(255 255 255 / 0.1);
+  border-top: 1px solid var(--shortcut-help-border);
   border-right: 0;
   border-bottom: 0;
   border-left: 0;
   border-radius: 0;
-  background: rgb(28 28 29 / 0.98);
-  box-shadow: 0 -16px 42px rgb(0 0 0 / 0.28);
-  color: rgb(244 244 245);
+  background: var(--shortcut-help-bg);
+  box-shadow: var(--shortcut-help-shadow);
+  color: var(--shortcut-help-text);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   letter-spacing: 0;
@@ -265,7 +287,7 @@
   justify-content: space-between;
   height: 54px;
   padding: 0 30px 0 max(44px, calc((100vw - 1260px) / 2));
-  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  border-bottom: 1px solid var(--shortcut-help-divider);
 }
 
 .shortcut-help__tab-list {
@@ -284,7 +306,7 @@
   padding: 0 2px;
   border: 0;
   background: transparent;
-  color: rgb(161 161 170);
+  color: var(--shortcut-help-muted);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 12px;
@@ -296,11 +318,11 @@
 }
 
 .shortcut-help__tab:hover {
-  color: rgb(244 244 245);
+  color: var(--shortcut-help-text);
 }
 
 .shortcut-help__tab.is-active {
-  color: rgb(255 255 255);
+  color: var(--shortcut-help-text);
 }
 
 .shortcut-help__tab.is-active::after {
@@ -309,7 +331,7 @@
   bottom: 0;
   left: 0;
   height: 2px;
-  background: rgb(24 144 255);
+  background: var(--shortcut-help-active);
   content: "";
 }
 
@@ -323,13 +345,13 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: rgb(161 161 170);
+  color: var(--shortcut-help-muted);
   cursor: pointer;
 }
 
 .shortcut-help__close:hover {
-  background: rgb(255 255 255 / 0.08);
-  color: rgb(244 244 245);
+  background: var(--shortcut-help-hover);
+  color: var(--shortcut-help-text);
 }
 
 .shortcut-help__content {
@@ -356,7 +378,7 @@
 .shortcut-help__description {
   min-width: 0;
   overflow: hidden;
-  color: rgb(212 212 216);
+  color: var(--shortcut-help-text);
   font-size: 12px;
   line-height: 17px;
   text-overflow: ellipsis;
@@ -375,10 +397,10 @@
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-  border: 1px solid rgb(113 113 122);
+  border: 1px solid var(--shortcut-help-key-border);
   border-radius: 5px;
-  background: rgb(39 39 42);
-  color: rgb(244 244 245);
+  background: var(--shortcut-help-key-bg);
+  color: var(--shortcut-help-key-text);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 11px;
