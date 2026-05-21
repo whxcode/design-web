@@ -1,5 +1,6 @@
 import { AppProvider } from "./app/app-provider";
 import { useAppStatus } from "./app/app-context";
+import { ShortcutHelpPanel } from "./app/shortcut-help-panel";
 import { TitlePanel } from "./app/title-panel";
 import { ToolbarPanel } from "./app/toolbar-panel";
 import { ViewportPanel } from "./app/viewport-panel";
@@ -18,6 +19,7 @@ const AppPanels = () => {
       <ViewportPanel />
       <TitlePanel />
       <ToolbarPanel />
+      <ShortcutHelpPanel />
     </>
   );
 };

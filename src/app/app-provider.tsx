@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppContext, type IAppContext } from "./app-context";
 import { useWindowUIEvents } from "./use-window-ui-events";
 import { DesignApp } from "../core/app";
+import { DesignCommandType } from "../core/command";
 import type {
   CoreModule,
   CreateCoreFactory,
@@ -59,9 +60,33 @@ const ensureDesignCoreScript = () => {
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [module, setModule] = useState<CoreModule | null>(null);
+  const [shortcutHelpOpened, setShortcutHelpOpened] = useState(false);
   const app = useMemo(() => (module ? new DesignApp(module) : null), [module]);
 
+  const openShortcutHelp = useCallback(() => {
+    setShortcutHelpOpened(true);
+  }, []);
+
+  const closeShortcutHelp = useCallback(() => {
+    setShortcutHelpOpened(false);
+  }, []);
+
+  const toggleShortcutHelp = useCallback(() => {
+    setShortcutHelpOpened((currentOpened) => !currentOpened);
+  }, []);
+
   useWindowUIEvents(app);
+
+  useEffect(() => {
+    if (!app) {
+      return;
+    }
+
+    app.command.registerCommand(
+      DesignCommandType.OpenShortcutHelp,
+      openShortcutHelp,
+    );
+  }, [app, openShortcutHelp]);
 
   useEffect(() => {
     let disposed = false;
@@ -120,8 +145,24 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const context = useMemo<IAppContext>(
-    () => ({ module, app, loaded }),
-    [app, loaded, module],
+    () => ({
+      module,
+      app,
+      loaded,
+      shortcutHelpOpened,
+      openShortcutHelp,
+      closeShortcutHelp,
+      toggleShortcutHelp,
+    }),
+    [
+      app,
+      closeShortcutHelp,
+      loaded,
+      module,
+      openShortcutHelp,
+      shortcutHelpOpened,
+      toggleShortcutHelp,
+    ],
   );
 
   return <AppContext.Provider value={context}>{children}</AppContext.Provider>;

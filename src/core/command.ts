@@ -1,17 +1,70 @@
-import {
-  type CoreCommand,
-  ZCommandType,
-} from "../types/design-core/core-api";
+import { type CoreCommand, ZCommandType } from "../types/design-core/core-api";
 
-export class DesignCommand {
-  constructor(private readonly command: CoreCommand) {}
+const WEB_COMMAND_START = 10000;
 
-  canExecute(type: ZCommandType) {
-    return this.command.canExecute(type);
+export const DesignCommandType = {
+  Escape: ZCommandType.Escape,
+  SwitchToCommonHandler: ZCommandType.SwitchToCommonHandler,
+  DrawRectangle: ZCommandType.DrawRectangle,
+  DrawEllipse: ZCommandType.DrawEllipse,
+  DrawVector: ZCommandType.DrawVector,
+  UndoDocumentHistory: ZCommandType.UndoDocumentHistory,
+  RedoDocumentHistory: ZCommandType.RedoDocumentHistory,
+  DeleteSelectedLayer: ZCommandType.DeleteSelectedLayer,
+  CancelCurrentInteraction: ZCommandType.CancelCurrentInteraction,
+  OpenShortcutHelp: WEB_COMMAND_START,
+} as const;
+
+export type DesignCommandType =
+  (typeof DesignCommandType)[keyof typeof DesignCommandType];
+export type DesignCommandHandler = () => void;
+
+const CORE_COMMAND_TYPES = new Set<DesignCommandType>(
+  Object.values(ZCommandType).filter(
+    (type): type is ZCommandType => typeof type === "number",
+  ),
+);
+
+const toCoreCommandType = (type: DesignCommandType): ZCommandType | null => {
+  if (!CORE_COMMAND_TYPES.has(type)) {
+    return null;
   }
 
-  execute(type: ZCommandType) {
-    this.command.execute(type);
+  return type as ZCommandType;
+};
+
+export class DesignCommand {
+  private readonly _commandHandlers = new Map<
+    DesignCommandType,
+    DesignCommandHandler
+  >();
+
+  constructor(private readonly command: CoreCommand) {}
+
+  registerCommand(
+    type: DesignCommandType,
+    handler: DesignCommandHandler,
+  ): void {
+    this._commandHandlers.set(type, handler);
+  }
+
+  canExecute(type: DesignCommandType): boolean {
+    const coreCommandType = toCoreCommandType(type);
+    if (coreCommandType !== null) {
+      return this.command.canExecute(coreCommandType);
+    }
+
+    return this._commandHandlers.has(type);
+  }
+
+  execute(type: DesignCommandType): void {
+    const coreCommandType = toCoreCommandType(type);
+    if (coreCommandType !== null) {
+      this.command.execute(coreCommandType);
+      return;
+    }
+
+    this._commandHandlers.get(type)?.();
   }
 
   canSwitchToCommonHandler() {

@@ -5,7 +5,11 @@ import {
   MouseButton,
   ZUIEventType,
 } from "../types/design-core/core-api";
-import { matchShortcut } from "../core/shortcuts";
+import {
+  matchShortcut,
+  shouldPreventCppShortcut,
+  ShortcutTrigger,
+} from "../core/shortcuts";
 import type { DesignApp } from "../core/app";
 import type { ZUIEvent } from "../types/design-core/core-api";
 
@@ -171,8 +175,7 @@ export const useWindowUIEvents = (app: DesignApp | null) => {
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      const shortcut = matchShortcut(event);
-      console.log(shortcut);
+      const shortcut = matchShortcut(event, ShortcutTrigger.KeyDown);
 
       if (shortcut) {
         command.execute(shortcut.command);
@@ -187,8 +190,12 @@ export const useWindowUIEvents = (app: DesignApp | null) => {
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      const shortcut = matchShortcut(event);
-      if (shortcut?.preventCpp) {
+      const shortcut = matchShortcut(event, ShortcutTrigger.KeyUp);
+      if (shortcut) {
+        command.execute(shortcut.command);
+      }
+
+      if (shouldPreventCppShortcut(event)) {
         event.preventDefault();
         return;
       }
