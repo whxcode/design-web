@@ -38,6 +38,14 @@ export class DesignCommand {
     this.command.execute(ZCommandType.DrawEllipse);
   }
 
+  canDrawVector() {
+    return this.command.canExecute(ZCommandType.DrawVector);
+  }
+
+  drawVector() {
+    this.command.execute(ZCommandType.DrawVector);
+  }
+
   canUndo() {
     return this.command.canExecute(ZCommandType.UndoDocumentHistory);
   }

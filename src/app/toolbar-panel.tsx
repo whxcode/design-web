@@ -1,25 +1,29 @@
 import { useEffect, useState } from "react";
 import { ActionIcon, Tooltip } from "@mantine/core";
-import { MousePointer2, Redo2, Square, Undo2 } from "lucide-react";
+import { Circle, MousePointer2, PenLine, Redo2, Square, Undo2 } from "lucide-react";
 
 import { useApp } from "./app-context";
-import { ZAppEventType, ZHandlerType } from "../types/design-core/core-api";
+import { ZAppEventType, ZEditorModeType } from "../types/design-core/core-api";
+
+const getToolButtonClass = (active: boolean) => {
+  return active ? "floating-icon-button is-active" : "floating-icon-button";
+};
 
 export const ToolbarPanel = () => {
   const app = useApp();
   const { command, core } = app;
-  const [handler, setHandler] = useState<ZHandlerType>(() => core.handler());
+  const [editorMode, setEditorMode] = useState<ZEditorModeType>(() => core.editorMode());
   const [canUndo, setCanUndo] = useState(() => command.canUndo());
   const [canRedo, setCanRedo] = useState(() => command.canRedo());
 
   useEffect(() => {
     const appEvent = core.appEvent();
-    const id = appEvent.on(ZAppEventType.HandlerChanged, () => {
-      setHandler(core.handler());
+    const id = appEvent.on(ZAppEventType.EditorModeChanged, () => {
+      setEditorMode(core.editorMode());
     });
 
     return () => {
-      appEvent.off(ZAppEventType.HandlerChanged, id);
+      appEvent.off(ZAppEventType.EditorModeChanged, id);
     };
   }, [core]);
 
@@ -58,11 +62,7 @@ export const ToolbarPanel = () => {
       <Tooltip label="选择" position="top" withArrow>
         <ActionIcon
           aria-label="选择"
-          className={
-            handler === ZHandlerType.Common
-              ? "floating-icon-button is-active"
-              : "floating-icon-button"
-          }
+          className={getToolButtonClass(editorMode === ZEditorModeType.Cursor)}
           size={30}
           variant="transparent"
           onClick={() => command.switchToCommonHandler()}
@@ -73,16 +73,34 @@ export const ToolbarPanel = () => {
       <Tooltip label="矩形" position="top" withArrow>
         <ActionIcon
           aria-label="矩形"
-          className={
-            handler === ZHandlerType.DrawLayer
-              ? "floating-icon-button is-active"
-              : "floating-icon-button"
-          }
+          className={getToolButtonClass(editorMode === ZEditorModeType.DrawRectangle)}
           size={30}
           variant="transparent"
           onClick={() => command.drawRectangle()}
         >
           <Square size={16} strokeWidth={2} />
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="椭圆" position="top" withArrow>
+        <ActionIcon
+          aria-label="椭圆"
+          className={getToolButtonClass(editorMode === ZEditorModeType.DrawOval)}
+          size={30}
+          variant="transparent"
+          onClick={() => command.drawEllipse()}
+        >
+          <Circle size={16} strokeWidth={2} />
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="向量" position="top" withArrow>
+        <ActionIcon
+          aria-label="向量"
+          className={getToolButtonClass(editorMode === ZEditorModeType.DrawVector)}
+          size={30}
+          variant="transparent"
+          onClick={() => command.drawVector()}
+        >
+          <PenLine size={16} strokeWidth={2} />
         </ActionIcon>
       </Tooltip>
       <span className="toolbar-panel__divider" aria-hidden="true" />

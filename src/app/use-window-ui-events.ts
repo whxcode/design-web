@@ -172,6 +172,8 @@ export const useWindowUIEvents = (app: DesignApp | null) => {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const shortcut = matchShortcut(event);
+      console.log(shortcut);
+
       if (shortcut) {
         command.execute(shortcut.command);
 

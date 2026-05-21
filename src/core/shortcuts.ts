@@ -30,11 +30,32 @@ export const getShortcutCategoryLabel = (category: ShortcutCategory) => {
 
 export const shortcuts: ShortcutItem[] = [
   {
+    command: ZCommandType.Escape,
+    description: "取消当前操作",
+    category: ShortcutCategory.Tool,
+    preventCpp: true,
+    keys: ["Escape"],
+  },
+  {
     command: ZCommandType.DrawRectangle,
     description: "绘制矩形",
     category: ShortcutCategory.Tool,
     preventCpp: true,
     keys: ["R"],
+  },
+  {
+    command: ZCommandType.DrawEllipse,
+    description: "绘制椭圆",
+    category: ShortcutCategory.Tool,
+    preventCpp: true,
+    keys: ["O"],
+  },
+  {
+    command: ZCommandType.DrawVector,
+    description: "绘制向量",
+    category: ShortcutCategory.Tool,
+    preventCpp: true,
+    keys: ["P"],
   },
   {
     command: ZCommandType.DeleteSelectedLayer,
@@ -81,5 +102,6 @@ const normalizeKey = (event: KeyboardEvent) => {
 
 export const matchShortcut = (event: KeyboardEvent) => {
   const key = normalizeKey(event);
+  // console.log(key);
   return shortcuts.find((shortcut) => shortcut.keys.includes(key)) ?? null;
 };

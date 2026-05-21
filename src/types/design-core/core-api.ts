@@ -13,13 +13,22 @@ export type WasmPtr = number;
 export type SizeT = number;
 
 export enum ZCommandType {
-  SwitchToCommonHandler = 0,
+  Escape = 0,
+  SwitchToCommonHandler = 1,
+  DrawRectangle = 2,
+  DrawEllipse = 3,
+  DrawVector = 4,
+  UndoDocumentHistory = 5,
+  RedoDocumentHistory = 6,
+  DeleteSelectedLayer = 7,
+  CancelCurrentInteraction = 8,
+}
+
+export enum ZEditorModeType {
+  Cursor = 0,
   DrawRectangle = 1,
-  DrawEllipse = 2,
-  UndoDocumentHistory = 3,
-  RedoDocumentHistory = 4,
-  DeleteSelectedLayer = 5,
-  CancelCurrentInteraction = 6,
+  DrawOval = 2,
+  DrawVector = 3,
 }
 
 export interface CoreWindow {
@@ -51,6 +60,7 @@ export enum ZAppEventType {
   HoverLayerChanged = 5,
   SelectedLayerChanged = 6,
   TraceChanged = 7,
+  EditorModeChanged = 8,
 }
 
 export enum ZEditorThemeType {
@@ -68,6 +78,7 @@ export interface CoreApp {
   draw(): void;
   viewport(): ViewportData;
   handler(): ZHandlerType;
+  editorMode(): ZEditorModeType;
   onUIEvent(event: ZUIEvent): void;
   setTheme(type: ZEditorThemeType): void;
   appEvent(): CoreAppEvent;
