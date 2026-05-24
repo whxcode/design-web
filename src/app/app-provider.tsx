@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppContext, type IAppContext } from "./app-context";
+import { syncCanvasSize } from "./canvas-size";
+import { useCanvasSize } from "./use-canvas-size";
 import { useWindowUIEvents } from "./use-window-ui-events";
 import { DesignApp } from "../core/app";
 import { DesignCommandType } from "../core/command";
@@ -76,6 +78,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useWindowUIEvents(app);
+  useCanvasSize(app);
 
   useEffect(() => {
     if (!app) {
@@ -108,11 +111,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           throw new Error("Canvas element not found");
         }
 
-        canvas.width = window.innerWidth * window.devicePixelRatio;
-        canvas.height = window.innerHeight * window.devicePixelRatio;
-
-        canvas.style.width = window.innerWidth + "px";
-        canvas.style.height = window.innerHeight + "px";
+        syncCanvasSize(canvas);
 
         const createCoreOptions: CreateCoreOptions = {
           canvas,
