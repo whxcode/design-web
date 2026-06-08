@@ -12,6 +12,7 @@ export const DesignCommandType = {
   RedoDocumentHistory: ZCommandType.RedoDocumentHistory,
   DeleteSelectedLayer: ZCommandType.DeleteSelectedLayer,
   CancelCurrentInteraction: ZCommandType.CancelCurrentInteraction,
+  DownloadFile: ZCommandType.DownloadFile,
   OpenShortcutHelp: WEB_COMMAND_START,
 } as const;
 

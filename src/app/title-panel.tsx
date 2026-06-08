@@ -1,14 +1,23 @@
 import { ActionIcon, Menu } from "@mantine/core";
-import { Check, Menu as MenuIcon, Monitor, Moon, Sun } from "lucide-react";
+import {
+  Check,
+  Download,
+  Menu as MenuIcon,
+  Monitor,
+  Moon,
+  Sun,
+} from "lucide-react";
 import {
   type MantineColorScheme,
   useMantineColorScheme,
 } from "@mantine/core";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import JSZip from "jszip";
 
 import { useApp } from "./app-context";
 import { ZEditorThemeType } from "../types/design-core/core-api";
+import { decodeDocumentFile } from "../kiwi/decode";
 
 const themeOptions: Array<{
   icon: ReactNode;
@@ -36,6 +45,7 @@ export const TitlePanel = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const app = useApp();
   const { core } = app;
+  const [exporting, setExporting] = useState(false);
 
   const resolveCoreTheme = useCallback((scheme: MantineColorScheme) => {
     if (scheme === "dark") {
@@ -55,6 +65,45 @@ export const TitlePanel = () => {
     setColorScheme(scheme);
     core.setTheme(resolveCoreTheme(scheme));
   };
+
+  const handleExport = useCallback(async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const data = core.exportFile();
+
+      // 🐛 调试：解码并打印导出数据
+      const decoded: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(data)) {
+        try {
+          decoded[key] = decodeDocumentFile(value as Uint8Array);
+        } catch (e) {
+          decoded[key] = `${(value as Uint8Array).byteLength} bytes (decode失败: ${e})`;
+        }
+      }
+      console.log("🐛 exportFile decoded:", decoded);
+
+      const zip = new JSZip();
+
+      for (const [key, value] of Object.entries(data)) {
+        zip.file(key, value as Uint8Array);
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "document.kiwi.zip";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("导出失败:", err);
+    } finally {
+      setExporting(false);
+    }
+  }, [core, exporting]);
 
   useEffect(() => {
     core.setTheme(resolveCoreTheme(colorScheme));
@@ -102,6 +151,14 @@ export const TitlePanel = () => {
               {option.label}
             </Menu.Item>
           ))}
+          <Menu.Divider />
+          <Menu.Item
+            leftSection={<Download size={14} strokeWidth={2} />}
+            disabled={exporting}
+            onClick={handleExport}
+          >
+            {exporting ? "导出中..." : "导出 kiwi"}
+          </Menu.Item>
         </Menu.Dropdown>
       </Menu>
 
