@@ -7,17 +7,14 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
-import {
-  type MantineColorScheme,
-  useMantineColorScheme,
-} from "@mantine/core";
+import { type MantineColorScheme, useMantineColorScheme } from "@mantine/core";
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import JSZip from "jszip";
 
 import { useApp } from "./app-context";
 import { ZEditorThemeType } from "../types/design-core/core-api";
-import { decodeDocumentFile } from "../kiwi/decode";
+import { schema } from "../kiwi/schema";
 
 const themeOptions: Array<{
   icon: ReactNode;
@@ -70,24 +67,29 @@ export const TitlePanel = () => {
     if (exporting) return;
     setExporting(true);
     try {
-      const data = core.exportFile();
+      const data = core.exportDocument();
+      const documentBytes = data.document as Uint8Array | undefined;
 
-      // 🐛 调试：解码并打印导出数据
-      const decoded: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(data)) {
-        try {
-          decoded[key] = decodeDocumentFile(value as Uint8Array);
-        } catch (e) {
-          decoded[key] = `${(value as Uint8Array).byteLength} bytes (decode失败: ${e})`;
-        }
+      if (!documentBytes) {
+        throw new Error("导出结果缺少 document 数据");
       }
-      console.log("🐛 exportFile decoded:", decoded);
+
+      const decodedDocument = schema.decodeDocumentFile(documentBytes);
+      const modelRows = decodedDocument.children?.map((model, index) => ({
+        index,
+        id: model.id,
+        type: model.type,
+        parentId: model.parentId,
+        name: model.name,
+      }));
+
+      console.log("exportDocument bytes:", documentBytes.byteLength);
+      console.log("exportDocument decoded:", decodedDocument);
+      console.table(modelRows ?? []);
 
       const zip = new JSZip();
 
-      for (const [key, value] of Object.entries(data)) {
-        zip.file(key, value as Uint8Array);
-      }
+      zip.file("document", documentBytes);
 
       const blob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(blob);
@@ -104,6 +106,8 @@ export const TitlePanel = () => {
       setExporting(false);
     }
   }, [core, exporting]);
+
+  const loadDocument = useCallback(async () => {}, [core]);
 
   useEffect(() => {
     core.setTheme(resolveCoreTheme(colorScheme));
@@ -158,6 +162,13 @@ export const TitlePanel = () => {
             onClick={handleExport}
           >
             {exporting ? "导出中..." : "导出 kiwi"}
+          </Menu.Item>
+
+          <Menu.Item
+            leftSection={<Download size={14} strokeWidth={2} />}
+            onClick={loadDocument}
+          >
+            加载文档
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
