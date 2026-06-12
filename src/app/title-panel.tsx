@@ -6,6 +6,7 @@ import {
   Monitor,
   Moon,
   Sun,
+  Upload,
 } from "lucide-react";
 import { type MantineColorScheme, useMantineColorScheme } from "@mantine/core";
 import { useCallback, useEffect, useState } from "react";
@@ -14,7 +15,6 @@ import JSZip from "jszip";
 
 import { useApp } from "./app-context";
 import { ZEditorThemeType } from "../types/design-core/core-api";
-import { schema } from "../kiwi/schema";
 
 const themeOptions: Array<{
   icon: ReactNode;
@@ -38,11 +38,17 @@ const themeOptions: Array<{
   },
 ];
 
+interface ExportedPageFile {
+  id: string;
+  document: Uint8Array;
+}
+
 export const TitlePanel = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const app = useApp();
   const { core } = app;
   const [exporting, setExporting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const resolveCoreTheme = useCallback((scheme: MantineColorScheme) => {
     if (scheme === "dark") {
@@ -69,27 +75,34 @@ export const TitlePanel = () => {
     try {
       const data = core.exportDocument();
       const documentBytes = data.document as Uint8Array | undefined;
+      const pageFiles = (data.pages ?? []) as ExportedPageFile[];
 
       if (!documentBytes) {
         throw new Error("导出结果缺少 document 数据");
       }
 
-      const decodedDocument = schema.decodeDocumentFile(documentBytes);
-      const modelRows = decodedDocument.children?.map((model, index) => ({
-        index,
-        id: model.id,
-        type: model.type,
-        parentId: model.parentId,
-        name: model.name,
-      }));
-
-      console.log("exportDocument bytes:", documentBytes.byteLength);
-      console.log("exportDocument decoded:", decodedDocument);
-      console.table(modelRows ?? []);
+      if (pageFiles.length === 0) {
+        throw new Error("导出结果缺少 page 数据");
+      }
 
       const zip = new JSZip();
 
-      zip.file("document", documentBytes);
+      zip.file(
+        "manifest.json",
+        JSON.stringify(
+          {
+            name: data.name || "Untitled",
+            version: 1,
+          },
+          null,
+          2,
+        ),
+      );
+      zip.file("document.kiwi", documentBytes);
+
+      for (const page of pageFiles) {
+        zip.file(`page-${page.id}.kiwi`, page.document);
+      }
 
       const blob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(blob);
@@ -107,7 +120,83 @@ export const TitlePanel = () => {
     }
   }, [core, exporting]);
 
-  const loadDocument = useCallback(async () => {}, [core]);
+  const loadDocument = useCallback(async () => {
+    if (loading) return;
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".kiwi.zip,.zip,.kiwi,application/zip,application/octet-stream";
+    input.style.display = "none";
+    input.oncancel = () => {
+      input.remove();
+    };
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      input.remove();
+
+      if (!file) {
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const fileBuffer = await file.arrayBuffer();
+        let payload: Uint8Array | { document: Uint8Array; pages: Uint8Array[] };
+
+        if (file.name.endsWith(".zip")) {
+          const zip = await JSZip.loadAsync(fileBuffer);
+          const documentEntry = zip.file("document.kiwi");
+
+          if (documentEntry) {
+            const pageEntries = Object.keys(zip.files)
+              .filter((name) => /^page-.+\.kiwi$/.test(name))
+              .sort()
+              .map((name) => zip.file(name));
+
+            if (pageEntries.length === 0) {
+              throw new Error("zip 文件缺少 page 数据");
+            }
+
+            payload = {
+              document: await documentEntry.async("uint8array"),
+              pages: await Promise.all(
+                pageEntries.map((entry) => {
+                  if (!entry) {
+                    throw new Error("zip 文件缺少 page 数据");
+                  }
+
+                  return entry.async("uint8array");
+                }),
+              ),
+            };
+          } else {
+            const legacyEntry = zip.file("document");
+
+            if (!legacyEntry) {
+              throw new Error("zip 文件缺少 document.kiwi 数据");
+            }
+
+            payload = await legacyEntry.async("uint8array");
+          }
+        } else {
+          payload = new Uint8Array(fileBuffer);
+        }
+
+        const result = core.loadDocument(payload);
+        if (!result?.success) {
+          throw new Error(result?.message ?? "文档加载失败");
+        }
+      } catch (err) {
+        console.error("加载文档失败:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    document.body.appendChild(input);
+    input.click();
+  }, [core, loading]);
 
   useEffect(() => {
     core.setTheme(resolveCoreTheme(colorScheme));
@@ -165,10 +254,11 @@ export const TitlePanel = () => {
           </Menu.Item>
 
           <Menu.Item
-            leftSection={<Download size={14} strokeWidth={2} />}
+            leftSection={<Upload size={14} strokeWidth={2} />}
+            disabled={loading}
             onClick={loadDocument}
           >
-            加载文档
+            {loading ? "加载中..." : "加载文档"}
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
