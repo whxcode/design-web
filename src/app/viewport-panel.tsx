@@ -5,7 +5,7 @@ import { useApp } from "./app-context";
 import {
   ZAppEventType,
   type ViewportData,
-} from "../types/design-core/core-api";
+} from "z-design";
 
 export const ViewportPanel = () => {
   const app = useApp();

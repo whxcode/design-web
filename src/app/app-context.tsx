@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
 import type { DesignApp } from "../core/app";
-import type { CoreModule } from "../types/design-core/core-api";
+import type { CoreModule } from "z-design";
 
 export interface IAppContext {
   module: CoreModule | null;

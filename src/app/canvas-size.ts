@@ -1,4 +1,4 @@
-import type { WindowContext } from "../types/design-core/core-api";
+import type { WindowContext } from "z-design";
 
 const MIN_CANVAS_SIZE = 1;
 

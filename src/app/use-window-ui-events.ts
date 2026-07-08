@@ -4,14 +4,14 @@ import {
   KeyCode,
   MouseButton,
   ZUIEventType,
-} from "../types/design-core/core-api";
+} from "z-design";
 import {
   matchShortcut,
   shouldPreventCppShortcut,
   ShortcutTrigger,
 } from "../core/shortcuts";
 import type { DesignApp } from "../core/app";
-import type { ZUIEvent } from "../types/design-core/core-api";
+import type { ZUIEvent } from "z-design";
 
 const getCanvasPoint = (event: MouseEvent, canvas: HTMLCanvasElement) => {
   const rect = canvas.getBoundingClientRect();

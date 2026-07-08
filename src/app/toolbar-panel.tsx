@@ -3,7 +3,7 @@ import { ActionIcon, Tooltip } from "@mantine/core";
 import { Circle, MousePointer2, PenLine, Redo2, Square, Undo2 } from "lucide-react";
 
 import { useApp } from "./app-context";
-import { ZAppEventType, ZEditorModeType } from "../types/design-core/core-api";
+import { ZAppEventType, ZEditorModeType } from "z-design";
 
 const getToolButtonClass = (active: boolean) => {
   return active ? "floating-icon-button is-active" : "floating-icon-button";

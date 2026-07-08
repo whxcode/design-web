@@ -1,4 +1,4 @@
-import { type CoreCommand, ZCommandType } from "../types/design-core/core-api";
+import { type CoreCommand, ZCommandType } from "z-design";
 
 const WEB_COMMAND_START = 10000;
 

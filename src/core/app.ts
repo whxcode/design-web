@@ -1,4 +1,4 @@
-import type { CoreApp, CoreModule } from "../types/design-core/core-api";
+import type { CoreApp, CoreModule } from "z-design";
 
 import { DesignCommand } from "./command";
 

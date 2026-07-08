@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 import JSZip from "jszip";
 
 import { useApp } from "./app-context";
-import { ZEditorThemeType } from "../types/design-core/core-api";
+import { ZEditorThemeType } from "z-design";
 
 const themeOptions: Array<{
   icon: ReactNode;

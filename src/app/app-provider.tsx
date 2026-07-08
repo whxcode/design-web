@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import createDesignCore from "z-design";
 
 import { AppContext, type IAppContext } from "./app-context";
 import { syncCanvasSize } from "./canvas-size";
@@ -10,16 +11,13 @@ import type {
   CoreModule,
   CreateCoreFactory,
   CreateCoreOptions,
-} from "../types/design-core/core-api";
+} from "z-design";
 
 declare global {
   interface Window {
-    createCore?: CreateCoreFactory;
     __addonkitPath?: string;
   }
 }
-
-let designCoreScriptPromise: Promise<void> | null = null;
 
 const isElectronEnv = () =>
   typeof navigator !== "undefined" &&
@@ -42,37 +40,7 @@ const getCoreFactory = async (): Promise<CreateCoreFactory> => {
     };
   }
 
-  // 浏览器/wasm 路径：如果已有 createCore 直接返回
-  if (window.createCore) {
-    return window.createCore;
-  }
-
-  // 否则动态加载 DesignCore.js
-  await new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-design-core="true"]',
-    );
-
-    if (existing) {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("DesignCore.js load failed")), { once: true });
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "/wasm/DesignCore.js";
-    script.async = true;
-    script.dataset.designCore = "true";
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("DesignCore.js load failed"));
-    document.body.appendChild(script);
-  }).catch((error) => {
-    throw error;
-  });
-
-  const factory = window.createCore;
-  if (!factory) throw new Error("DesignCore.js 加载后 createCore 不可用");
-  return factory;
+  return createDesignCore as CreateCoreFactory;
 };
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
@@ -122,7 +90,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
         const createCoreOptions: CreateCoreOptions = {
           canvas,
-          locateFile: (path: string) => `/wasm/${path}`,
           noInitialRun: false,
           onRuntimeInitialized: () => {},
           print: (text: string) => { console.log(text); },
@@ -130,6 +97,19 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
         const coreModule = await createCore(createCoreOptions);
         if (disposed) return;
+
+        // Electron addon 环境：绑定 canvas 到渲染器
+        if (isElectronEnv()) {
+          try {
+            const addonkitPath = window.__addonkitPath;
+            if (addonkitPath) {
+              const addon = require(addonkitPath) as { bindCanvas?: () => void };
+              addon.bindCanvas?.();
+            }
+          } catch (e) {
+            console.warn("bindCanvas failed:", e);
+          }
+        }
 
         setModule(coreModule);
         setLoaded(true);
